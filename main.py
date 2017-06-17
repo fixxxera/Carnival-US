@@ -10,13 +10,14 @@ headers = {
     "Accept": "application/json, text/plain, */*",
     "Accept-Language": "en-US,en;q=0.5",
     "Connection": "keep-alive",
-    "Refer": "https://www.carnival.com/"
+    "Refer": "https://www.carnival.com/",
+    "Cookie": "s_vi=[CS]v1|2C92325D851D3507-6000191120002B97[CE]; utag_main=v_id:015c7502d7e4006202069aa345b800044001900900bd0$_sn:1$_ss:1$_pn:1%3Bexp-session$_st:1496613542883$ses_id:1496611739620%3Bexp-session$dc_visit:1$dc_event:1%3Bexp-session$dc_region:eu-central-1%3Bexp-session; optimizelyEndUserId=oeu1496611739753r0.8896192772234034; optimizelySegments=%7B%221887831728%22%3A%22false%22%2C%221888511398%22%3A%22direct%22%2C%221898132135%22%3A%22none%22%2C%221913541698%22%3A%22ff%22%7D; optimizelyBuckets=%7B%228410210627%22%3A%228408200311%22%2C%226939620018%22%3A%226934321168%22%2C%228407180704%22%3A%228404570565%22%2C%228405600653%22%3A%228397910589%22%2C%227827422680%22%3A%227843031052%22%2C%228413440188%22%3A%228413780031%22%7D; optimizelyPendingLogEvents=%5B%5D; sandy-session-id=ea2797589057e761; sandy-client-id=25dd69e589fe1cde; website#lang=en; ASP.NET_SessionId=k3od3o0mj01qlmkisk5bwfvr; _ga=GA1.2.2045567053.1496611740; _gid=GA1.2.2131515016.1496611740; _gat_mobifyTracker=1; BigIPServerCarnival=!ZD0ZbNpX3f0SqrhbtW16dxLpZShBZOqP1DfOx0Ky4CqxbGv5oRuxuho0uGA2kj2A3lBFTlnX4zeFSVo=; cclHeader=%257B%2522TravelAdvisory%2522%253A%2522TravelAdvisory1%253Dtrue%2522%252C%2522DomainNotification%2522%253A%2522false%2522%257D; _gat_tealium_0=1; s_pers=%20s_vnum%3D1498856400818%2526vn%253D1%7C1498856400818%3B%20s_fid%3D1E868BE0F9C7536E-14F6109221605E84%7C1654378151742%3B%20gpv_pn%3Dcarnival.com%253Ahome%7C1496613551743%3B%20s_invisit%3Dtrue%7C1496613551745%3B%20s_dslv%3D1496611751746%7C1591219751746%3B%20s_dslv_s%3DFirst%2520Visit%7C1496613551746%3B%20s_nvr%3D1496611751748-New%7C1499203751748%3B; s_sess=%20s_cc%3Dtrue%3B%20s_ppvl%3Dcarnival.com%25253Ahome%252C51%252C35%252C887%252C1920%252C244%252C1920%252C1080%252C1%252CP%3B%20s_sq%3Dcarnivalprodus%253D%252526pid%25253Dcarnival.com%2525253Ahome%252526pidt%25253D1%252526oid%25253Djavascript%2525253A%2525253B%252526ot%25253DA%3B%20s_ppv%3Dcarnival.com%25253Ahome%252C55%252C51%252C952%252C1920%252C423%252C1920%252C1080%252C1%252CP%3B; _gat_tealium_1=1; carnivaltracking=1; NSE_AB=control; CCL_ExistingSession=true; CCL_IsReturner=false; _ceg.s=or1l0g; _ceg.u=or1l0g; mobify.webpush.client_id=42143ef692a13b39; mobify.webpush.user_state=Supported; mobify.webpush.activeVisit=1; mobify.webpush.subscription_cache=eyJvcHRlZF9vdXQiOmZhbHNlLCJjbGllbnRfaWQiOiI0MjE0M2VmNjkyYTEzYjM5Iiwic3Vic2NyaXB0aW9uX3N0YXR1cyI6InVua25vd24iLCJhY3RpdmUiOmZhbHNlLCJmYWtlIjp0cnVlfQ=="
 }
 codes = ["A", "BH", "BM", "NN", "C", "H", "M", "T"]
 
 
 def get_total_pages(this_code):
-    count_url = "https://www.carnival.com/bookingengine/api/search?exclDetails=false&layout=grid&numAdults=1&numChildren=0&pageNumber=1&pageSize=8&showBest=true&sort=FromPrice&dest=" + this_code + "&useSuggestions=true "
+    count_url = "https://www.carnival.com/cruisesearch/api/search?dest="+this_code+"&numAdults=2&pageNumber=1&pageSize=8&showBest=true&sort=FromPrice&useSuggestions=true"
     count_page = session.get(count_url, headers=headers)
     root = count_page.json()
     results = root['results']
@@ -194,16 +195,15 @@ def split_carib(ports):
 for code in codes:
     limit = get_total_pages(code)
     start_page = 1
-    counter = 0
-    url = "https://www.carnival.com/bookingengine/api/search?exclDetails=false&layout=grid&numAdults=2&numChildren=0&pageNumber=1&pageSize=" + str(
-        limit) + "&showBest=true&sort=FromPrice&dest=" + code + "&useSuggestions=true"
-    page = session.get(url, headers=headers)
-    cruise_results = page.json()['results']
-    print("Downloading sailings for destination:", code)
-    for line in cruise_results['itineraries']:
-        itineraries.append(line)
-        counter += 1
-    counter = 0
+    current_page = start_page
+    while current_page <= start_page:
+        url = "https://www.carnival.com/cruisesearch/api/search?dest="+code+"&numAdults=2&pageNumber="+str(current_page)+"&pageSize=8&showBest=true&sort=FromPrice&useSuggestions=true"
+        page = session.get(url, headers=headers)
+        cruise_results = page.json()['results']
+        print("Downloading sailings for destination:", code)
+        for line in cruise_results['itineraries']:
+            itineraries.append(line)
+        current_page += 1
     for line in itineraries:
         ports = []
         for p in line['ports']:
@@ -223,8 +223,6 @@ for code in codes:
                 destination_name = "West Carib"
             elif "Eastern" in brochure_name:
                 destination_name = "East Carib"
-        if destination_name == 'Carib':
-            print(brochure_name, ports)
         ids.add(vessel_name)
         vessel_id = get_vessel_id(vessel_name)
         cruise_id = "2"
@@ -234,7 +232,6 @@ for code in codes:
                 continue
             else:
                 sailing_codes.append(sailing['sailingId'])
-            counter += 1
             departure_split = sailing['departureDate'].split('T')[0]
             arrival_split = sailing['arrivalDate'].split('T')[0]
             sail_date = preformated(departure_split)
@@ -256,7 +253,8 @@ for code in codes:
                     itinerary_id, brochure_name, number_of_nights, sail_date, return_date, interior_bucket_price,
                     oceanview_bucket_price, balcony_bucket_price, suite_bucket_price]
             all_sailings.append(temp)
-print(ids)
+            print(temp)
+
 
 
 def write_file_to_excell(data_array):
